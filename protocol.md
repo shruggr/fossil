@@ -6,9 +6,9 @@
 - Payments to be used to fund Transaction List transactions
 
 #### OP_RETURN
-1 BLOCK HEAD Protocol ID - 1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB
-2 ChainID - BTC, BCH
-3 Block Header hex
+- BLOCK HEAD Protocol ID - 1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB
+- ChainID - BTC, BCH
+- Block Header hex
 
 
 ## "Transaction List" Transaction
@@ -18,9 +18,9 @@
 
 ### Output
 #### OP_RETURN Output
-1 BLOCK TXNS Protocol ID - 1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5
-2 1st transaction hex
-3 2nd transaction hex
-4 ...
-n nth transaction hex
+- BLOCK TXNS Protocol ID - 1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5
+- 1st transaction hex
+- 2nd transaction hex
+- ...
+- nth transaction hex
 
