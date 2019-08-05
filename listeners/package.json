@@ -9,7 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/bigquery": "^4.1.8",
     "bitcore-lib": "^8.5.1",
+    "blockchain.info": "^2.12.1",
+    "dotenv": "^8.0.0",
     "fs-extra": "^8.1.0",
     "node-fetch": "^2.6.0"
   }
