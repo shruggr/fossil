@@ -9,9 +9,10 @@ const fundingAddress = fundingPriv.toAddress(process.env.NETWORK).toString();
 console.log(`Funding Address: ${fundingAddress}`);
 
 async function split() {
-    const utxos = await getUtxos(fundingAddress);
-    const total = utxos.reduce((total, utxo) => total + utxo.satoshis, 0);
-    const count = parseInt(total / 1200000);
+    const utxos = (await getUtxos(fundingAddress)) || [];
+    if(utxos.length > 1000) return;
+    let total = utxos.reduce((total, utxo) => total + utxo.satoshis, 0) - 100000;
+    let count = Math.min(parseInt(total / 1200000), 1000);
     const txn = new bsv.Transaction()
         .from(utxos);
     for(let i = 0; i < count; i++) {

@@ -147,8 +147,8 @@ async function processPending() {
 let fundingUtxos;
 async function run() {
     fundingUtxos = await getUtxos(fundingAddress);
-    await processBlocks();
-    // await processPending();
+    // await processBlocks();
+    await processPending();
 
     // Sleep 10 minutes
     return new Promise((resolve, reject) => {

@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 
 module.exports.getUtxos = function getUtxos(address) {
     return fetch(`https://api.bitindex.network/api/v3/${process.env.APINET}/addr/${address}/utxo`)
+    // return fetch(`https://api.whatsonchain.com/v1/bsv/${process.env.APINET}/address/${address}/unspent`)
         .then((res) => res.ok ? res.json() : Promise.reject(new Error(res.statusText)))
         .then((data) => {
             return data;
