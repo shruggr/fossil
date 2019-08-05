@@ -29,13 +29,17 @@ cd ..
 
 ## Run
 ### Sync
-`node sync/btc.js`
+```
+node sync/btc.js
+```
 Sync process will start from the current block and walk it's way back the chain, saving block data to `./data/blocks/<blockHash>.json`. This process will take a long time to download the entire chain and will require significan storage.
 
 This could be modified to download by block height which would capture orphans and offer more options for which blocks to sync.
 
 ### Upload
-`node upload/process.js`
+```
+node upload/process.js
+```
 Upload process analzes downloaded block data and creates BSV transactions. There are two types of BSV transactions, Funding/Block Head transactions, and Transaction List transactions. Funding transactions contain the block header and are broadcast immediately. Funding transaction also includes UTXOs to be used for uploading Transaction List transactions. A child key is derived based on the block hash to ensure that these UTXOs are not spent inadvertantly. When the Funding transaction has been successfully broadcast, the block file is removed from `./data/blocks` and the block header is saved to `./data/processed/<blockHash>`
 
 Transaction List transactions contain an ordered list of block transactions, and are saved to `./data/pending/<transactionHash>`. These transactions are broadcast one at a time. When successfully broadcast, the files are removed from `./data/pending`. There may be some situations where the mempool descendant chain is too long and the transaction will not be accepted. In this case the transaction will remain in the directory, and will be rebroadcast on the next pass.
