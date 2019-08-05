@@ -1,6 +1,6 @@
 # Fossil Blockchain Protocol
 
-## Block Funding Transaction
+## "Block Funding" Transaction
 ### Outputs
 #### vout 0-n
 - Payments to be used to fund Transaction List transactions
@@ -11,7 +11,7 @@
 3 Block Header hex
 
 
-## Transaction List
+## "Transaction List" Transaction
 ### Inputs
 - One of outputs 0-n from Block Funding Transaction
 - Any addition inputs needed to fund transaction fees
