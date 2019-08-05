@@ -1,19 +1,17 @@
-const bsv = require('bsv');
-const fetch = require('node-fetch');
+const bsv = require('bsv');;
 const fs = require('fs-extra');
 const path = require('path');
-
 require('dotenv').config();
 
-const NETWORK = 'testnet';
-const APINET = 'test';
+const {getUtxos, sendTxn} = require('./bsv-api');
+
 
 const BLOCKHEAD = '1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB';
 const BLOCKTXNS = '1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5';
 
 const hdPriv = bsv.HDPrivateKey.fromString(process.env.HDPRIV);
 const fundingPriv = hdPriv.privateKey;
-const fundingAddress = fundingPriv.toAddress(NETWORK).toString();
+const fundingAddress = fundingPriv.toAddress(process.env.NETWORK).toString();
 console.log(`Funding Address: ${fundingAddress}`);
 
 const blocksdir = path.join(__dirname, '../data/blocks');
@@ -22,33 +20,6 @@ const processeddir = path.join(__dirname, '../data/processed');
 fs.ensureDirSync(blocksdir);
 fs.ensureDirSync(pendingdir);
 fs.ensureDirSync(processeddir);
-
-function getUtxos(address) {
-    return fetch(`https://api.bitindex.network/api/v3/${APINET}/addr/${address}/utxo`)
-        .then((res) => res.ok ? res.json() : Promise.reject(new Error(res.statusText)))
-        .then((data) => {
-            return data;
-        });
-}
-
-function send(txn) {
-    console.log(`Broadcasting: ${txn.hash}`);
-    return fetch(`https://api.bitindex.network/api/v3/${APINET}/tx/send`, {
-        method: 'post',
-        body: JSON.stringify({rawtx: txn.toString()}),
-        headers: {
-            'Content-Type': 'application/json',
-            'api_key': '5S6NL4ZeikgBqFCsJrv3bhexqDB1mNwz4GmnAK2hjzRviozF8Dx2sKjfT73vaFcuNn'
-         }
-    })
-        .then(async (res) => {
-            const data = await res.json();
-            if(!res.ok) {
-                throw new Error(data.message.message.substring(0, 100));
-            }
-            return data.txid
-        })
-}
 
 async function processBlock({chainId, hash, header, txns}) {
     let derivationKeys = [];
@@ -60,6 +31,7 @@ async function processBlock({chainId, hash, header, txns}) {
     let blockHDPriv = hdPriv.deriveChild(derivationPath);
     let blockPrivateKey = blockHDPriv.privateKey;
     let blockAddress = blockPrivateKey.toAddress('testnet').toString();
+    console.log(`Block Address: ${blockAddress}`);
 
     let chunk = [];
     const chunks = [chunk];
@@ -75,13 +47,17 @@ async function processBlock({chainId, hash, header, txns}) {
         chunk.push(txnBuffer);
     }
 
-    let chainUtxos = await getUtxos(fundingAddress);
+    let satsRequired = (100000 * chunks.length) + 50000;
     const utxos = [];
     let satoshis = 0;
-    while(satoshis < 1050000 && chainUtxos.length) {
-        let utxo = chainUtxos.pop();
+    while(satoshis < satsRequired && fundingUtxos.length) {
+        let utxo = fundingUtxos.pop();
         utxos.push(utxo);
         satoshis += utxo.satoshis;
+    }
+    if(satoshis < satsRequired) {
+        fundingUtxos.push(...utxos);
+        throw new Error('Insufficient Funding');
     }
 
     const fundingTxn = new bsv.Transaction()
@@ -106,7 +82,7 @@ async function processBlock({chainId, hash, header, txns}) {
         let chunkTxn = new bsv.Transaction()
             .from({
                 txid: fundingTxn.hash,
-                vout: 0,
+                vout: i,
                 script: fundingTxn.outputs[i].script,
                 satoshis: fundingTxn.outputs[i].satoshis
             })
@@ -122,7 +98,12 @@ async function processBlock({chainId, hash, header, txns}) {
         chunkTxns[chunkTxn.hash] = chunkTxn.toString()
     })
 
-    let fundingTxnId = await send(fundingTxn);
+    let fundingTxnId = await sendTxn(fundingTxn);
+
+    let changeOutput = fundingTxn.getChangeOutput().toObject();
+    changeOutput.vout = fundingTxn._changeIndex;
+    changeOutput.txid = fundingTxn.hash;
+    fundingUtxos.unshift(changeOutput);
     return {
         fundingTxnId,
         chunkTxns
@@ -153,7 +134,7 @@ async function processPending() {
     for(let hash of filelist) {
         const hex = await fs.readFile(path.join(pendingdir, hash));
         try {
-            await send(new bsv.Transaction(hex.toString()));
+            await sendTxn(new bsv.Transaction(hex.toString()));
             await fs.remove(path.join(pendingdir, hash));
         }
         catch(err) {
@@ -163,15 +144,18 @@ async function processPending() {
     }
 }
 
+let fundingUtxos;
 async function run() {
+    fundingUtxos = await getUtxos(fundingAddress);
     await processBlocks();
-    await processPending();
+    // await processPending();
 
+    // Sleep 10 minutes
     return new Promise((resolve, reject) => {
-        setTimeout(run, 10000);
-    })
+        setTimeout(() => resolve(run()), 600000)
+    });
 }
 
 run()
     .catch(console.error)
-    .then(() => process.exit);
+    .then(() => process.exit(0));
