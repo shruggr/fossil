@@ -147,12 +147,12 @@ async function processPending() {
 let fundingUtxos;
 async function run() {
     fundingUtxos = await getUtxos(fundingAddress);
-    // await processBlocks();
+    await processBlocks();
     await processPending();
 
-    // Sleep 10 minutes
+    // Sleep 1 minute
     return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(run()), 600000)
+        setTimeout(() => resolve(run()), 60000)
     });
 }
 
