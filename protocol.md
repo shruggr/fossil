@@ -1,25 +1,26 @@
 # Fossil Blockchain Protocol
 
-## Block Found
-### OP_RETURN Output
-1 16eXjTXuwq4K7PtpdfNGhVoQHuuUpYUfF4
-2 ChainID - BTC, BCH,
-3 BlockHash
+## "Block Funding" Transaction
+### Outputs
+#### vout 0-n
+- Payments to be used to fund Transaction List transactions
 
-## Block
-### OP_RETURN Output
-1 1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB
-2 ChainID - BTC, BCH
-3 Block Header
-### Outputs 2-n: One for each block-txns TXN
+#### OP_RETURN
+- BLOCK HEAD Protocol ID - 1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB
+- ChainID - BTC, BCH
+- Block Header hex
 
-## BlockSequence
-### OP_RETURN Output
-1 192gcfWz3sGB1mfWR98dkhDix1fYHNzYh4
-2..n Transaction  hash
 
-## Transaction
-### OP_RETURN Output
-1 1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5
-2 Transaction Blob
+## "Transaction List" Transaction
+### Inputs
+- One of outputs 0-n from Block Funding Transaction
+- Any addition inputs needed to fund transaction fees
+
+### Output
+#### OP_RETURN Output
+- BLOCK TXNS Protocol ID - 1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5
+- 1st transaction hex
+- 2nd transaction hex
+- ...
+- nth transaction hex
 
