@@ -4,8 +4,6 @@ const path = require('path');
 require('dotenv').config();
 
 const {getUtxos, sendTxn} = require('./bsv-api');
-
-
 const BLOCKHEAD = '1AWEpKHWcdhXCfdPGH4zKEP1EMzSZAWsgB';
 const BLOCKTXNS = '1NwmdmRduR59pYdGaafHVMvbjDvUAjsja5';
 
@@ -13,13 +11,6 @@ const hdPriv = bsv.HDPrivateKey.fromString(process.env.HDPRIV);
 const fundingPriv = hdPriv.privateKey;
 const fundingAddress = fundingPriv.toAddress(process.env.NETWORK).toString();
 console.log(`Funding Address: ${fundingAddress}`);
-
-const blocksdir = path.join(__dirname, '../data/blocks');
-const pendingdir = path.join(__dirname, '../data/pending');
-const processeddir = path.join(__dirname, '../data/processed');
-fs.ensureDirSync(blocksdir);
-fs.ensureDirSync(pendingdir);
-fs.ensureDirSync(processeddir);
 
 async function processBlock({chainId, hash, header, txns}) {
     let derivationKeys = [];
@@ -112,30 +103,30 @@ async function processBlock({chainId, hash, header, txns}) {
 
 async function processBlocks() {
     console.log('Processing Blocks');
-    let filelist = await fs.readdir(blocksdir);
+    let filelist = await fs.readdir(process.env.BLOCKS);
     for(let file of filelist) {
         console.log(`Processing File: ${file}`)
-        let block = await fs.readJSON(path.join(blocksdir, file));
+        let block = await fs.readJSON(path.join(process.env.BLOCKS, file));
         let result = await processBlock(block);
         for(let [hash, hex] of Object.entries(result.chunkTxns)) {
             await fs.writeFile(
-                path.join(pendingdir, hash),
+                path.join(process.env.PENDING, hash),
                 hex
             );
         }
-        await fs.writeFile(path.join(processeddir, block.hash), block.header);
-        await fs.remove(path.join(blocksdir, file));
+        await fs.writeFile(path.join(process.env.PROCESSED, block.hash), block.header);
+        await fs.remove(path.join(process.env.BLOCKS, file));
     }
 }
 
 async function processPending() {
     console.log('Processing Pending');
-    let filelist = await fs.readdir(pendingdir);
+    let filelist = await fs.readdir(process.env.PENDING);
     for(let hash of filelist) {
-        const hex = await fs.readFile(path.join(pendingdir, hash));
+        const hex = await fs.readFile(path.join(process.env.PENDING, hash));
         try {
             await sendTxn(new bsv.Transaction(hex.toString()));
-            await fs.remove(path.join(pendingdir, hash));
+            await fs.remove(path.join(process.env.PENDING, hash));
         }
         catch(err) {
             console.error(err);

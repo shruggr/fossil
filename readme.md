@@ -2,8 +2,6 @@
 Preserve legacy blockchain data to BSV.
 
 ## Installation
-Do to conflicts between the bitcore-lib and bsv libraries, sync and upload processes require separate library installs.
-
 ### Upload
 ```
 cd upload
@@ -11,9 +9,9 @@ npm install
 cd ..
 ```
 
-#### Generate Funding Address
-`node upload/generate-funding-keys.js`
-This will display the funding address. Transfer BSV to this address. A safe estimation is about 1200000 satoshis per BTC block.
+#### Initialize
+`node upload/initialize.js`
+This will initialize the app and display the funding address. Transfer BSV to this address. A safe estimation is about 1200000 satoshis per BTC block.
 Smaller blocks will require less BSV, but change will be managed by the system.
 
 #### Split UTXOs
@@ -21,8 +19,11 @@ Smaller blocks will require less BSV, but change will be managed by the system.
 This process splits exiting funds into upto 1000 utxos of 1200000 satoshis each. Wait for next BSV block before continuing with upload process.
 
 ### Sync
+Each blockchain requires its own npm install
 ```
-cd sync
+cd sync/btc
+npm install
+cd ../bch
 npm install
 cd ..
 ```

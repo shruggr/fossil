@@ -1,0 +1,14 @@
+{
+  "name": "fossil-btc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sync-btc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bitcore-lib": "^8.5.1"
+  }
+}
