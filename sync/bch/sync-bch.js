@@ -1,10 +1,10 @@
-const BITBOX = require('bitbox-sdk').BITBOX;
 const bitcore = require('bitcore-lib-cash');
 const fs = require('fs-extra');
 const fetch = require('node-fetch');
 const path = require('path');
 require('dotenv').config();
 
+const BITBOX = require('bitbox-sdk').BITBOX;
 let bitbox = new BITBOX();
 
 
@@ -63,17 +63,26 @@ async function processBlock(hash) {
 }
 
 async function syncFull() {
-    let info = await bitbox.Blockchain.getBlockchainInfo();
-    let hash = info.bestblockhash;
-    let height = info.blocks;
-    while(height >= 478558) {
-        let headerData = await processBlock(hash);
-        hash = headerData.previousblockhash;
-        height = headerData.height;
+    const filename = path.join(process.env.DATA, 'bch');
+    let lastSync = 478557;
+    if(fs.existsSync(filename)) {
+        lastSync = parseInt(fs.readFileSync(filename));
     }
-    // Sleep 10 minutes
-    return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(syncFull()), 600000)
+    let { blocks } = await bitbox.Blockchain.getBlockchainInfo();
+
+    while(lastSync++ <= blocks) {
+        let blocks = await bitbox.Block.detailsByHeight(lastSync);
+        let hashes = Array.isArray(blocks) ?
+            blocks.map((block) => block.hash) :
+            [blocks.hash];
+        for(let hash of hashes) {
+            await processBlock(hash);
+        }
+        fs.writeFileSync(filename, lastSync);
+    }
+    // Sleep 1 minute
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(syncFull()), 60000)
     });
 }
 

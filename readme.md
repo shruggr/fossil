@@ -31,7 +31,8 @@ cd ..
 ## Run
 ### Sync
 ```
-node sync/btc.js
+node sync/btc/sync-btc.js
+node sync/bch/sync-bch.js
 ```
 Sync process will start from the current block and walk it's way back the chain, saving block data to `./data/blocks/<blockHash>.json`. This process will take a long time to download the entire chain and will require significan storage.
 

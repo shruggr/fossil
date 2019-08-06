@@ -4,9 +4,16 @@ const fetch = require('node-fetch');
 const path = require('path');
 require('dotenv').config();
 
-function getCurrentBlock() {
+function getLatestHeight() {
     return fetch('https://blockchain.info/latestblock')
-        .then((res) => res.ok ? res.json() : Promise.reject(new Error(res.statusText)));
+        .then((res) => res.ok ? res.json() : Promise.reject(new Error(res.statusText)))
+        .then(({height}) => height);
+}
+
+function getBlocksByHeight(height) {
+    return fetch(`https://blockchain.info/block-height/${height}?format=json`)
+        .then((res) => res.ok ? res.json() : Promise.reject(new Error(res.statusText)))
+        .then((data) => data.blocks.map(({hash}) => hash));
 }
 
 async function getBlock(id) {
@@ -54,25 +61,24 @@ async function processBlock(hash) {
 }
 
 async function syncFull() {
-    let currentBlock = await getCurrentBlock();
-    let hash = currentBlock.hash;
-    while(hash) {
-        let header = await processBlock(hash);
-        hash = header.toObject().prevHash;
+    const filename = path.join(process.env.DATA, 'btc');
+    let lastSync = 0;
+    if(fs.existsSync(filename)) {
+        lastSync = parseInt(fs.readFileSync(filename));
     }
-    // Sleep 10 minutes
-    return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(syncFull()), 600000)
-    });
-}
 
-async function syncLatest() {
-    let currentBlock = await getCurrentBlock();
-    let hash = currentBlock.hash;
-    while(!await isPending(hash) && !await isProcessed(hash)) {
-        let header = await processBlock(hash);
-        hash = header.toObject().prevHash;
+    let latest = await getLatestHeight();
+    while(lastSync++ <= latest) {
+        let hashes = await getBlocksByHeight(lastSync);
+        for(let hash of hashes) {
+            await processBlock(hash);
+        }
+        fs.writeFileSync(filename, lastSync);
     }
+    // Sleep 1 minute
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(syncFull()), 60000)
+    });
 }
 
 syncFull()
