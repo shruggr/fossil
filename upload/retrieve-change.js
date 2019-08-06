@@ -10,8 +10,6 @@ const fundingPriv = hdPriv.privateKey;
 const fundingAddress = fundingPriv.toAddress(process.env.NETWORK).toString();
 console.log(`Funding Address: ${fundingAddress}`);
 
-const process.env.PROCESSED = path.join(__dirname, '../data/processed');
-
 async function run() {
     let filelist = await fs.readdir(process.env.PROCESSED);
     for (let hash of filelist) {
