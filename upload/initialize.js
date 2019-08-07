@@ -19,7 +19,7 @@ fs.writeFileSync(path.join(__dirname, '../.env'),
 `HDPRIV=${hdPriv.toString()}
 NETWORK=mainnet
 APINET=main
-DATA=${datadir}
+DATA=${dataDir}
 BLOCKS=${blocksDir}
 PENDING=${pendingDir}
 PROCESSED=${processedDir}
