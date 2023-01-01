@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bsv": "^0.29.2",
+    "bsv": "^2.0.10",
     "dotenv": "^8.0.0",
     "fs-extra": "^8.1.0",
     "node-fetch": "^2.6.0"
